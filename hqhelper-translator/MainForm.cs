@@ -251,7 +251,7 @@ public partial class MainForm : Form
         var xlsx_folder = xlsx_path.Replace(xlsx_path.Split("\\").Last(), "");
         Process.Start("explorer.exe", ExcelPath);
     }
-    private void BtnRegroupToJson_Click(object sender, EventArgs e)
+    private async void BtnRegroupToJson_Click(object sender, EventArgs e)
     {
         if (string.IsNullOrEmpty(config.HqhelperPath))
         {
@@ -259,90 +259,101 @@ public partial class MainForm : Form
             return;
         }
 
-        #region 主要i18n
-        var json_path = config.HqhelperPath;
-        if (!json_path.EndsWith('\\')) json_path += "\\";
-        json_path += @"src\languages\translates\default.json";
-        var xlsx_path = ExcelPath + @"\主要i18n.xlsx";
-        var json_content = LocalFile.Read(json_path);
+        if (!CommonTool.ShowConfirm("确认要开始重组吗?\n可能要花费一段时间。在此期间请勿操作此工具的界面。"))
+            return;
+        BtnRegroupToJson.Enabled = false;
+        var oriBtnText = BtnRegroupToJson.Text;
+        BtnRegroupToJson.Text = "正在重组...";
 
-        var json = JsonConvert.DeserializeObject<Dictionary<string, ExpandoObject>>(json_content);
-        json ??= [];
-        var invalid_cns = new List<string>();
-
-        var workBook = new XLWorkbook(xlsx_path);
-        var workSheet = workBook.Worksheet(1);
-        var rowCount = workSheet.RowCount();
-
-        for (int i = 1; i < rowCount; i++) // 跳过标题栏
+        await Task.Run(() =>
         {
-            var rowIndex = i + 1;
-            var row = workSheet.Row(rowIndex);
-            var cn = row.Cell(1).GetString() ?? "";
-            var ja = row.Cell(2).GetString() ?? "";
-            var en = row.Cell(3).GetString() ?? "";
+            #region 主要i18n
+            var json_path = config.HqhelperPath;
+            if (!json_path.EndsWith('\\')) json_path += "\\";
+            json_path += @"src\languages\translates\default.json";
+            var xlsx_path = ExcelPath + @"\主要i18n.xlsx";
+            var json_content = LocalFile.Read(json_path);
 
-            if (cn.Length == 0)
-                continue;
-            if (!json.TryGetValue(cn, out ExpandoObject? value))
-                invalid_cns.Add(cn);
-            else
+            var json = JsonConvert.DeserializeObject<Dictionary<string, ExpandoObject>>(json_content);
+            json ??= [];
+            var invalid_cns = new List<string>();
+
+            var workBook = new XLWorkbook(xlsx_path);
+            var workSheet = workBook.Worksheet(1);
+            var rowCount = workSheet.RowCount();
+
+            for (int i = 1; i < rowCount; i++) // 跳过标题栏
             {
-                dynamic obj = value;
-                obj.ja = ja;
-                obj.en = en;
-                json[cn] = obj;
+                var rowIndex = i + 1;
+                var row = workSheet.Row(rowIndex);
+                var cn = row.Cell(1).GetString() ?? "";
+                var ja = row.Cell(2).GetString() ?? "";
+                var en = row.Cell(3).GetString() ?? "";
+
+                if (cn.Length == 0)
+                    continue;
+                if (!json.TryGetValue(cn, out ExpandoObject? value))
+                    invalid_cns.Add(cn);
+                else
+                {
+                    dynamic obj = value;
+                    obj.ja = ja;
+                    obj.en = en;
+                    json[cn] = obj;
+                }
             }
-        }
 
-        LocalFile.Write(json_path, JsonConvert.SerializeObject(json, Formatting.Indented));
-        #endregion
+            LocalFile.Write(json_path, JsonConvert.SerializeObject(json, Formatting.Indented));
+            #endregion
 
-        #region 道具暂译表
-        json_path = config.HqhelperPath;
-        if (!json_path.EndsWith('\\')) json_path += "\\";
-        var name_json_path = json_path + @"src\assets\data\translations\xiv-item-names.json";
-        var desc_json_path = json_path + @"src\assets\data\translations\xiv-item-descriptions.json";
-        xlsx_path = ExcelPath + @"\道具暂译表.xlsx";
+            #region 道具暂译表
+            json_path = config.HqhelperPath;
+            if (!json_path.EndsWith('\\')) json_path += "\\";
+            var name_json_path = json_path + @"src\assets\data\translations\xiv-item-names.json";
+            var desc_json_path = json_path + @"src\assets\data\translations\xiv-item-descriptions.json";
+            xlsx_path = ExcelPath + @"\道具暂译表.xlsx";
 
-        workBook = new XLWorkbook(xlsx_path);
-        workSheet = workBook.Worksheet(1);
-        rowCount = workSheet.RowCount();
+            workBook = new XLWorkbook(xlsx_path);
+            workSheet = workBook.Worksheet(1);
+            rowCount = workSheet.RowCount();
 
-        var names = new Dictionary<int, string>();
-        var descs = new Dictionary<int, string>();
+            var names = new Dictionary<int, string>();
+            var descs = new Dictionary<int, string>();
 
-        for (int i = 1; i < rowCount; i++) // 跳过标题栏
-        {
-            var rowIndex = i + 1;
-            var row = workSheet.Row(rowIndex);
+            for (int i = 1; i < rowCount; i++) // 跳过标题栏
+            {
+                var rowIndex = i + 1;
+                var row = workSheet.Row(rowIndex);
 
-            var firstCell = row.Cell(1).GetString() ?? "";
-            if (string.IsNullOrEmpty(firstCell))
-                continue;
+                var firstCell = row.Cell(1).GetString() ?? "";
+                if (string.IsNullOrEmpty(firstCell))
+                    continue;
 
-            var itemID = int.Parse(firstCell);
-            var name_cn = row.Cell(2).GetString() ?? "";
-            var name_ja = row.Cell(3).GetString() ?? "";
-            var name_en = row.Cell(4).GetString() ?? "";
-            var desc_cn = row.Cell(5).GetString() ?? "";
-            var desc_ja = row.Cell(6).GetString() ?? "";
-            var desc_en = row.Cell(7).GetString() ?? "";
+                var itemID = int.Parse(firstCell);
+                var name_cn = row.Cell(2).GetString() ?? "";
+                var name_ja = row.Cell(3).GetString() ?? "";
+                var name_en = row.Cell(4).GetString() ?? "";
+                var desc_cn = row.Cell(5).GetString() ?? "";
+                var desc_ja = row.Cell(6).GetString() ?? "";
+                var desc_en = row.Cell(7).GetString() ?? "";
 
-            if (!string.IsNullOrEmpty(name_cn))
-                names.TryAdd(itemID, name_cn);
-            if (!string.IsNullOrEmpty(desc_cn))
-                descs.TryAdd(itemID, desc_cn);
-        }
+                if (!string.IsNullOrEmpty(name_cn))
+                    names.TryAdd(itemID, name_cn);
+                if (!string.IsNullOrEmpty(desc_cn))
+                    descs.TryAdd(itemID, desc_cn);
+            }
 
-        names = names.SortByKey();
-        descs = descs.SortByKey();
+            names = names.SortByKey();
+            descs = descs.SortByKey();
 
-        LocalFile.Write(name_json_path, JsonConvert.SerializeObject(names, Formatting.Indented));
-        LocalFile.Write(desc_json_path, JsonConvert.SerializeObject(descs, Formatting.Indented));
-        #endregion
+            LocalFile.Write(name_json_path, JsonConvert.SerializeObject(names, Formatting.Indented));
+            LocalFile.Write(desc_json_path, JsonConvert.SerializeObject(descs, Formatting.Indented));
+            #endregion
+        });
 
         CommonTool.ShowMsg("已完成重组。请到本地仓库中检查更改……");
+        BtnRegroupToJson.Enabled = true;
+        BtnRegroupToJson.Text = oriBtnText;
     }
     #endregion
 }

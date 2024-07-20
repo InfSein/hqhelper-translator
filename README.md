@@ -1,0 +1,1 @@
+# hqhelper-translator

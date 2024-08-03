@@ -247,6 +247,90 @@ public partial class MainForm : Form
         CommonTool.ExportExcel(dts, xlsx_path, true);
         #endregion
 
+        #region 地图名暂译
+        json_path = config.HqhelperPath;
+        if (!json_path.EndsWith('\\')) json_path += "\\";
+        var translate_json_path = json_path + @"src\assets\data\translations\xiv-places.json";
+        var gathering_item_json_path = json_path + @"src\assets\data\unpacks\gathering-item.json";
+        var territory_json_path = json_path + @"src\assets\data\unpacks\territory.json";
+        var place_name_json_path = json_path + @"src\assets\data\unpacks\place-name.json";
+        xlsx_path = ExcelPath + @"\地名暂译表.xlsx";
+
+        var translate_json_content = LocalFile.Read(translate_json_path);
+        var gathering_item_json_content = LocalFile.Read(gathering_item_json_path);
+        var territory_json_content = LocalFile.Read(territory_json_path);
+        var place_name_json_content = LocalFile.Read(place_name_json_path);
+
+        var translate_json = JsonConvert.DeserializeObject<Dictionary<int, string>>(translate_json_content);
+        var gathering_item_json = JsonConvert.DeserializeObject<Dictionary<int, GatheringUnpacked>>(gathering_item_json_content);
+        var territory_json = JsonConvert.DeserializeObject<Dictionary<int, List<int>>>(territory_json_content);
+        var place_name_json = JsonConvert.DeserializeObject<Dictionary<int, List<string>>>(place_name_json_content);
+        translate_json ??= []; gathering_item_json ??= []; territory_json ??= []; place_name_json ??= [];
+
+        // key: place_id
+        var translation_dict = new Dictionary<int, PlaceTranslated>();
+
+        // 读取已经有了的地名暂译
+        foreach (var trans in translate_json)
+        {
+            var place_id = trans.Key; var name_zh = trans.Value;
+            string name_ja = "", name_en = "";
+            if (place_name_json.TryGetValue(trans.Key, out var names))
+            {
+                name_ja = names[0];
+                name_en = names[1];
+            }
+            translation_dict.Add(place_id, new PlaceTranslated(place_id, name_zh, name_ja, name_en));
+        }
+
+        // 解析JSON，获取需要翻译的地名
+        foreach (var gathering in gathering_item_json)
+        {
+            var territoryID = gathering.Value.territory;
+            if (territory_json.TryGetValue(territoryID, out var territory))
+            {
+                var placeID = territory[2];
+                if (place_name_json.TryGetValue(placeID, out var names))
+                {
+                    string name_ja = names[0], name_en = names[1];
+                    string name_zh = names[2];
+                    if (name_zh.IsInvalid() && !translation_dict.ContainsKey(placeID))
+                    {
+                        translation_dict.Add(placeID, new(placeID, name_zh, name_ja, name_en));
+                    }
+                }
+            }
+        }
+
+        // 将待翻译的道具按道具ID递增排序
+        translation_dict = translation_dict.SortByKey();
+
+        dt = new DataTable();
+        dt.Columns.Add(new DataColumn("场景ID", typeof(int)));
+        dt.Columns.Add(new DataColumn("场景名-中文", typeof(string)));
+        dt.Columns.Add(new DataColumn("场景名-日文", typeof(string)));
+        dt.Columns.Add(new DataColumn("场景名-英文", typeof(string)));
+
+        // 导出为Excel
+        foreach (var item in translation_dict)
+        {
+            int place_id = item.Key;
+            string name_zh = item.Value.name_zh;
+            string name_ja = item.Value.name_ja;
+            string name_en = item.Value.name_en;
+            DataRow dr = dt.NewRow();
+            dr["场景ID"] = place_id;
+            dr["场景名-中文"] = name_zh;
+            dr["场景名-日文"] = name_ja;
+            dr["场景名-英文"] = name_en;
+            dt.Rows.Add(dr);
+        }
+        dts = new Dictionary<string, DataTable>() {
+            { "HqHelper-地名暂译表", dt }
+        };
+        CommonTool.ExportExcel(dts, xlsx_path, true);
+        #endregion
+
         CommonTool.ShowMsg("成功地将Json处理成了Excel。\n即将打开Excel所在的文件夹……");
         var xlsx_folder = xlsx_path.Replace(xlsx_path.Split("\\").Last(), "");
         Process.Start("explorer.exe", ExcelPath);
@@ -348,6 +432,41 @@ public partial class MainForm : Form
 
             LocalFile.Write(name_json_path, JsonConvert.SerializeObject(names, Formatting.Indented));
             LocalFile.Write(desc_json_path, JsonConvert.SerializeObject(descs, Formatting.Indented));
+            #endregion
+
+            #region 地名暂译表
+            json_path = config.HqhelperPath;
+            if (!json_path.EndsWith('\\')) json_path += "\\";
+            var translate_json_path = json_path + @"src\assets\data\translations\xiv-places.json";
+            xlsx_path = ExcelPath + @"\地名暂译表.xlsx";
+
+            workBook = new XLWorkbook(xlsx_path);
+            workSheet = workBook.Worksheet(1);
+            rowCount = workSheet.RowCount();
+
+            var placeTranslations = new Dictionary<int, string>();
+
+            for (int i = 1; i < rowCount; i++) // 跳过标题栏
+            {
+                var rowIndex = i + 1;
+                var row = workSheet.Row(rowIndex);
+
+                var firstCell = row.Cell(1).GetString() ?? "";
+                if (string.IsNullOrEmpty(firstCell))
+                    continue;
+
+                var place_id = int.Parse(firstCell);
+                var name_cn = row.Cell(2).GetString() ?? "";
+                var name_ja = row.Cell(3).GetString() ?? "";
+                var name_en = row.Cell(4).GetString() ?? "";
+
+                if (!string.IsNullOrEmpty(name_cn))
+                    placeTranslations.TryAdd(place_id, name_cn);
+            }
+
+            placeTranslations = placeTranslations.SortByKey();
+
+            LocalFile.Write(translate_json_path, JsonConvert.SerializeObject(placeTranslations, Formatting.Indented));
             #endregion
         });
 

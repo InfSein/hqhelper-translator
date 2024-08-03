@@ -24,6 +24,20 @@ namespace hqhelper_translator
             public List<string> lang;
             public List<string> desc;
         }
+        public struct GatheringUnpacked
+        {
+            // {
+            //  "type":3,
+            //  "pointType":1,
+            //  "territory":140,
+            //  "place":264,
+            //  "popType":"normal",
+            //  "popTime":false,
+            //  "coords":{"x":"23.36","y":"23.40"}
+            // }
+            public int territory;
+            //public int place;
+        }
         public struct ItemTranslated
         {
             public string name_zh;
@@ -41,6 +55,20 @@ namespace hqhelper_translator
                 this.desc_zh = desc_zh;
                 this.desc_ja = desc_ja;
                 this.desc_en = desc_en;
+            }
+        }
+        public struct PlaceTranslated
+        {
+            public int place_id;
+            public string name_zh;
+            public string name_ja;
+            public string name_en;
+            public PlaceTranslated(int place_id, string name_zh, string name_ja, string name_en)
+            {
+                this.place_id = place_id;
+                this.name_zh = name_zh;
+                this.name_ja = name_ja;
+                this.name_en = name_en;
             }
         }
     }

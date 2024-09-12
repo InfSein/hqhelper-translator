@@ -2,11 +2,12 @@
 
 namespace hqhelper_translator;
 
-internal class ConfigHelper
+public class ConfigHelper
 {
     public struct ConfigModel
     {
         public string HqhelperPath { get; set; }
+        public string CHS_CSVPath { get; set; }
     }
 
     private static string SavePath {

@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             MainMenuStrip = new MenuStrip();
+            版本信息ToolStripMenuItem = new ToolStripMenuItem();
             hqHelper仓库目录ToolStripMenuItem = new ToolStripMenuItem();
             帮助文档ToolStripMenuItem = new ToolStripMenuItem();
             groupBox1 = new GroupBox();
@@ -56,7 +57,8 @@
             BtnRegroupToJson = new Button();
             label11 = new Label();
             label13 = new Label();
-            版本信息ToolStripMenuItem = new ToolStripMenuItem();
+            工具ToolStripMenuItem = new ToolStripMenuItem();
+            导入国服拆包ToolStripMenuItem = new ToolStripMenuItem();
             MainMenuStrip.SuspendLayout();
             groupBox1.SuspendLayout();
             groupBox2.SuspendLayout();
@@ -67,12 +69,18 @@
             // MainMenuStrip
             // 
             MainMenuStrip.ImageScalingSize = new Size(32, 32);
-            MainMenuStrip.Items.AddRange(new ToolStripItem[] { 版本信息ToolStripMenuItem, hqHelper仓库目录ToolStripMenuItem, 帮助文档ToolStripMenuItem });
+            MainMenuStrip.Items.AddRange(new ToolStripItem[] { 版本信息ToolStripMenuItem, 工具ToolStripMenuItem, hqHelper仓库目录ToolStripMenuItem, 帮助文档ToolStripMenuItem });
             MainMenuStrip.Location = new Point(0, 0);
             MainMenuStrip.Name = "MainMenuStrip";
             MainMenuStrip.Size = new Size(1101, 42);
             MainMenuStrip.TabIndex = 0;
             MainMenuStrip.Text = "menuStrip1";
+            // 
+            // 版本信息ToolStripMenuItem
+            // 
+            版本信息ToolStripMenuItem.Name = "版本信息ToolStripMenuItem";
+            版本信息ToolStripMenuItem.Size = new Size(130, 38);
+            版本信息ToolStripMenuItem.Text = "版本信息";
             // 
             // hqHelper仓库目录ToolStripMenuItem
             // 
@@ -335,11 +343,19 @@
             label13.TabIndex = 5;
             label13.Text = "© InfSein, 2024";
             // 
-            // 版本信息ToolStripMenuItem
+            // 工具ToolStripMenuItem
             // 
-            版本信息ToolStripMenuItem.Name = "版本信息ToolStripMenuItem";
-            版本信息ToolStripMenuItem.Size = new Size(130, 38);
-            版本信息ToolStripMenuItem.Text = "版本信息";
+            工具ToolStripMenuItem.DropDownItems.AddRange(new ToolStripItem[] { 导入国服拆包ToolStripMenuItem });
+            工具ToolStripMenuItem.Name = "工具ToolStripMenuItem";
+            工具ToolStripMenuItem.Size = new Size(82, 38);
+            工具ToolStripMenuItem.Text = "工具";
+            // 
+            // 导入国服拆包ToolStripMenuItem
+            // 
+            导入国服拆包ToolStripMenuItem.Name = "导入国服拆包ToolStripMenuItem";
+            导入国服拆包ToolStripMenuItem.Size = new Size(359, 44);
+            导入国服拆包ToolStripMenuItem.Text = "导入国服拆包";
+            导入国服拆包ToolStripMenuItem.Click += 导入国服拆包ToolStripMenuItem_Click;
             // 
             // MainForm
             // 
@@ -401,5 +417,7 @@
         private Label label13;
         private ToolStripMenuItem hqHelper仓库目录ToolStripMenuItem;
         private ToolStripMenuItem 版本信息ToolStripMenuItem;
+        private ToolStripMenuItem 工具ToolStripMenuItem;
+        private ToolStripMenuItem 导入国服拆包ToolStripMenuItem;
     }
 }

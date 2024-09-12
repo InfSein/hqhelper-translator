@@ -1,4 +1,5 @@
 ﻿using ClosedXML.Excel;
+using hqhelper_translator.Sub_Forms;
 using Newtonsoft.Json;
 using System.Data;
 using System.Diagnostics;
@@ -18,7 +19,8 @@ public partial class MainForm : Form
 
     private static string ExcelPath
     {
-        get {
+        get
+        {
             var path = Environment.CurrentDirectory + @"\Excels";
             LocalFile.CreateFolderIfAbsent(path);
             return path;
@@ -475,4 +477,10 @@ public partial class MainForm : Form
         BtnRegroupToJson.Text = oriBtnText;
     }
     #endregion
+
+    private void 导入国服拆包ToolStripMenuItem_Click(object sender, EventArgs e)
+    {
+        using var icc = new ImportCsvCHS(config, config.HqhelperPath);
+        icc.ShowDialog();
+    }
 }

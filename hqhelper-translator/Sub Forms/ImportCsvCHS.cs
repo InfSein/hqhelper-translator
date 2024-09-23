@@ -140,7 +140,10 @@ namespace hqhelper_translator.Sub_Forms
                 {
                     var descCHS = val.Item2;
                     if (string.IsNullOrEmpty(descCHS)) continue;
-                    descCHS = descCHS.Replace("\n", "<br>");
+                    descCHS = descCHS
+                        .Replace("\r\n", "<br>")
+                        .Replace("\r", "<br>")
+                        .Replace("\n", "<br>");
                     if (!string.IsNullOrEmpty(descCHS) && descCHS != itemDescTranslated)
                     {
                         desc_json[itemID] = descCHS;

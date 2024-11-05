@@ -9,6 +9,10 @@ jobs:
   build:
     runs-on: windows-latest
     steps:
+      - name: Install GitHub CLI
+        run: |
+          curl -fsSL https://cli.github.com/packages/install.sh | bash
+    
       - name: Checkout code
         uses: actions/checkout@v2
 
@@ -27,7 +31,6 @@ jobs:
         run: |
           dotnet publish --configuration Release --output ./publish -p:PublishProfile=Properties/PublishProfiles/FolderProfile.pubxml
 
-
       - name: Get version from csproj
         id: version
         run: |
@@ -39,6 +42,27 @@ jobs:
               Write-Error "The csproj file was not found at the expected location: $csprojPath"
           }
 
-      - name: Create GitHub Release
+      - name: Package build files into zip
         run: |
-          gh release create "v${{ env.VERSION }}" ./publish/* --title "Release v${{ env.VERSION }}" --notes "Automated release"
+          Compress-Archive -Path ./publish/* -DestinationPath ./HqHelperTranslator.zip
+
+      - name: Check if release already exists
+        id: release_check
+        run: |
+          release_exists=$(gh release list --json tagName --jq ".[] | select(.tagName == \"v${{ env.VERSION }}\") | .tagName" || echo "")
+          echo "Release exists: $release_exists"
+          echo "RELEASE_EXISTS=$release_exists" >> $GITHUB_ENV
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create or update GitHub release
+        run: |
+          if [ -z "${{ env.RELEASE_EXISTS }}" ]; then
+            echo "Creating new release..."
+            gh release create "v${{ env.VERSION }}" ./HqHelperTranslator.zip --title "Release v${{ env.VERSION }}" --notes "Automated release"
+          else
+            echo "Release exists, updating attachments..."
+            gh release upload "v${{ env.VERSION }}" ./HqHelperTranslator.zip --replace
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

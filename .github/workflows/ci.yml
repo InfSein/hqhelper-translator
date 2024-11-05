@@ -49,9 +49,16 @@ jobs:
       - name: Check if release already exists
         id: release_check
         run: |
-          $release_exists = (gh release list --json tagName --jq ".[] | select(.tagName == \"v${{ env.VERSION }}\") | .tagName") -ne $null
-          echo "Release exists: $release_exists"
-          echo "RELEASE_EXISTS=$release_exists" >> $GITHUB_ENV
+          $version = "v${{ env.VERSION }}"
+          $releases = gh release list --json tagName --limit 100
+          $release_exists = $releases | Where-Object { $_.tagName -eq $version }
+          if ($release_exists) {
+              echo "Release exists: true"
+              echo "RELEASE_EXISTS=true" >> $GITHUB_ENV
+          } else {
+              echo "Release exists: false"
+              echo "RELEASE_EXISTS=false" >> $GITHUB_ENV
+          }
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

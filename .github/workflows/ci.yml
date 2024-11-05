@@ -51,7 +51,7 @@ jobs:
         id: release_check
         run: |
           $version = "v${{ env.VERSION }}"
-          $releases = gh release list --json tagName --limit 100
+          $releases = gh release list --json tagName --limit 100 | ConvertFrom-Json
           $release_exists = $releases | Where-Object { $_.tagName -eq $version }
           if ($release_exists) {
             echo "RELEASE_EXISTED=true" >> $env:GITHUB_ENV

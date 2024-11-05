@@ -31,7 +31,8 @@ jobs:
       - name: Get version from csproj
         id: version
         run: |
-          version=$(grep -oP '(?<=<Version>)[^<]+' hqhelper-translator.csproj)
+          $csprojPath = "hqhelper-translator.csproj"
+          $version = (Select-String -Path $csprojPath -Pattern '<Version>(.*?)</Version>' | ForEach-Object { $_.Matches.Groups[1].Value }).Trim()
           echo "VERSION=$version" >> $GITHUB_ENV
 
       - name: Create GitHub Release

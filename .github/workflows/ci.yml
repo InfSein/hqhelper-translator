@@ -1,0 +1,37 @@
+name: .NET Build 和 Release
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up .NET 8
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.x'
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build project
+        run: dotnet build --configuration Release
+
+      - name: Publish project
+        run: dotnet publish --configuration Release --output ./publish --publish-profile .\Properties\PublishProfiles\FolderProfile.pubxml
+
+      - name: Get version from csproj
+        id: version
+        run: |
+          version=$(grep -oP '(?<=<Version>)[^<]+' YourProject.csproj)
+          echo "VERSION=$version" >> $GITHUB_ENV
+
+      - name: Create GitHub Release
+        run: |
+          gh release create "v${{ env.VERSION }}" ./publish/* --title "Release v${{ env.VERSION }}" --notes "Automated release"

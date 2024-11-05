@@ -37,7 +37,8 @@ jobs:
           $csprojPath = "./hqhelper-translator/hqhelper-translator.csproj"
           if (Test-Path $csprojPath) {
               $version = (Select-String -Path $csprojPath -Pattern '<Version>(.*?)</Version>' | ForEach-Object { $_.Matches.Groups[1].Value }).Trim()
-              $env:VERSION = $version
+              Write-Host "VERSION=$version"
+              echo "VERSION=$version" >> "$GITHUB_ENV"
           } else {
               Write-Error "The csproj file was not found at the expected location: $csprojPath"
           }
@@ -53,9 +54,9 @@ jobs:
           $releases = gh release list --json tagName --limit 100
           $release_exists = $releases | Where-Object { $_.tagName -eq $version }
           if ($release_exists) {
-            $env:exists = "true"
+            echo "exists=true" >> "$GITHUB_ENV"
           } else {
-            $env:exists = "false"
+            echo "exists=false" >> "$GITHUB_ENV"
           }
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

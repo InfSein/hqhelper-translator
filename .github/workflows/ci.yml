@@ -24,12 +24,14 @@ jobs:
         run: dotnet build --configuration Release
 
       - name: Publish project
-        run: dotnet publish --configuration Release --output ./publish --publish-profile .\Properties\PublishProfiles\FolderProfile.pubxml
+        run: |
+          dotnet publish --configuration Release --output ./publish -p:PublishProfile=Properties/PublishProfiles/FolderProfile.pubxml
+
 
       - name: Get version from csproj
         id: version
         run: |
-          version=$(grep -oP '(?<=<Version>)[^<]+' YourProject.csproj)
+          version=$(grep -oP '(?<=<Version>)[^<]+' hqhelper-translator.csproj)
           echo "VERSION=$version" >> $GITHUB_ENV
 
       - name: Create GitHub Release

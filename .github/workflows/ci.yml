@@ -49,20 +49,23 @@ jobs:
       - name: Check if release already exists
         id: release_check
         run: |
-          if gh release view "v${{ env.VERSION }}" > /dev/null 2>&1; then
+          $version = "v${{ env.VERSION }}"
+          $releases = gh release list --json tagName --limit 100
+          $release_exists = $releases | Where-Object { $_.tagName -eq $version }
+          if ($release_exists) {
             echo "exists=true" >> $GITHUB_ENV
-          else
+          } else {
             echo "exists=false" >> $GITHUB_ENV
-          fi
+          }
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create or update GitHub release
         run: |
-          if [ "${{ env.exists }}" = "true" ]; then
+          if (${{ env.exists }}) {
             gh release upload "v${{ env.VERSION }}" ./HqHelperTranslator.zip --replace
-          else
+          } else {
             gh release create "v${{ env.VERSION }}" ./HqHelperTranslator.zip --title "Release v${{ env.VERSION }}" --notes "Automated release"
-          fi
+          }
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -31,9 +31,13 @@ jobs:
       - name: Get version from csproj
         id: version
         run: |
-          $csprojPath = "hqhelper-translator.csproj"
-          $version = (Select-String -Path $csprojPath -Pattern '<Version>(.*?)</Version>' | ForEach-Object { $_.Matches.Groups[1].Value }).Trim()
-          echo "VERSION=$version" >> $GITHUB_ENV
+          $csprojPath = "./hqhelper-translator/hqhelper-translator.csproj"
+          if (Test-Path $csprojPath) {
+              $version = (Select-String -Path $csprojPath -Pattern '<Version>(.*?)</Version>' | ForEach-Object { $_.Matches.Groups[1].Value }).Trim()
+              echo "VERSION=$version" >> $GITHUB_ENV
+          } else {
+              Write-Error "The csproj file was not found at the expected location: $csprojPath"
+          }
 
       - name: Create GitHub Release
         run: |

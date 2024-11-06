@@ -65,7 +65,7 @@ jobs:
         run: |
           if ("${{ env.RELEASE_EXISTED }}" -eq "true") {
             Write-Host "Release already exists. Uploading new assets..."
-            gh release upload "v${{ env.VERSION }}" ./HqHelperTranslator.zip --replace
+            gh release upload "v${{ env.VERSION }}" ./HqHelperTranslator.zip --clobber
           } else {
             Write-Host "Creating new release..."
             gh release create "v${{ env.VERSION }}" ./HqHelperTranslator.zip --title "Release v${{ env.VERSION }}" --notes "Automated release"

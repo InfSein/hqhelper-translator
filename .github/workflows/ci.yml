@@ -63,9 +63,11 @@ jobs:
 
       - name: Create or update GitHub release
         run: |
-          if (${{ env.RELEASE_EXISTED }} -eq "true") {
+          if ("${{ env.RELEASE_EXISTED }}" -eq "true") {
+            Write-Host "Release already exists. Uploading new assets..."
             gh release upload "v${{ env.VERSION }}" ./HqHelperTranslator.zip --replace
           } else {
+            Write-Host "Creating new release..."
             gh release create "v${{ env.VERSION }}" ./HqHelperTranslator.zip --title "Release v${{ env.VERSION }}" --notes "Automated release"
           }
         env:

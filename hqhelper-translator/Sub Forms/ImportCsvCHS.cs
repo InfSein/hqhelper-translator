@@ -186,7 +186,8 @@ namespace hqhelper_translator.Sub_Forms
             if (CbOperateMode.SelectedIndex == 2) // 直接修改数据库表
             {
                 var _s = JsonConvert.SerializeObject(itemdb_json);
-                _s = _s.Replace("]]},", "]]},\n"); // 保持原格式
+                _s = _s.Replace("]},", "]},\r\n"); // 保持原格式
+                _s = _s.Replace(@"""spm"":null,", "");
                 LocalFile.Write(itemdb_json_path, _s);
                 msg += "数据表已经更新，请到仓库中检查变更。\n";
             }

@@ -51,8 +51,8 @@ namespace hqhelper_translator
             public bool jd;
             public string p;
             public List<string> desc;
-            public List<List<int>> bpm;
-            public List<List<int>> spm;
+            public List<List<dynamic>> bpm;
+            public List<List<dynamic>>? spm;
             public List<dynamic> actParm;
         }
         public struct GatheringUnpacked

@@ -156,7 +156,7 @@
             // 
             CbOperateMode.DropDownStyle = ComboBoxStyle.DropDownList;
             CbOperateMode.FormattingEnabled = true;
-            CbOperateMode.Items.AddRange(new object[] { "预检模式", "正式执行" });
+            CbOperateMode.Items.AddRange(new object[] { "预检模式", "正式执行", "正式执行II(修改unpacks表)" });
             CbOperateMode.Location = new Point(23, 37);
             CbOperateMode.Name = "CbOperateMode";
             CbOperateMode.Size = new Size(308, 39);

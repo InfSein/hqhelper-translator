@@ -61,6 +61,8 @@ namespace hqhelper_translator.Sub_Forms
                 LabelOperateModeDesc.Text = "预先检查暂译与国服文本的区别，不实行更改。";
             else if (CbOperateMode.SelectedIndex == 1)
                 LabelOperateModeDesc.Text = "直接使用国服文本替换暂译。";
+            else if (CbOperateMode.SelectedIndex == 2)
+                LabelOperateModeDesc.Text = "直接使用国服文本替换数据表(/unpacks/item.json)。";
             else
                 LabelOperateModeDesc.Text = "未预料到的选择，请检查BUG。";
         }
@@ -97,15 +99,18 @@ namespace hqhelper_translator.Sub_Forms
             }
 
             if (!path_repository.EndsWith('\\')) path_repository += "\\";
+            var itemdb_json_path = path_repository + @"src\assets\data\unpacks\item.json";
             var name_json_path = path_repository + @"src\assets\data\translations\xiv-item-names.json";
             var desc_json_path = path_repository + @"src\assets\data\translations\xiv-item-descriptions.json";
 
+            var itemdb_json_content = LocalFile.Read(itemdb_json_path);
             var name_json_content = LocalFile.Read(name_json_path);
             var desc_json_content = LocalFile.Read(desc_json_path);
 
+            var itemdb_json = JsonConvert.DeserializeObject<Dictionary<int, ItemUnpacked>>(itemdb_json_content);
             var name_json = JsonConvert.DeserializeObject<Dictionary<int, string>>(name_json_content);
             var desc_json = JsonConvert.DeserializeObject<Dictionary<int, string>>(desc_json_content);
-            name_json ??= []; desc_json ??= [];
+            itemdb_json ??= []; name_json ??= []; desc_json ??= [];
 
             // Key: itemID, value: (oldVal, newVal)
             var changed_item_names = new Dictionary<int, (string, string)>();
@@ -116,12 +121,19 @@ namespace hqhelper_translator.Sub_Forms
             {
                 var itemID = itemKvp.Key;
                 var itemNameTranslated = itemKvp.Value;
+                var dbHasValue = itemdb_json.TryGetValue(itemID, out var itemdb);
+                if (dbHasValue && itemdb.lang[2].IsValid()) itemNameTranslated = itemdb.lang[2];
                 if (itemID < 0) continue; // ID为负的是注释，不管它
                 if (items.TryGetValue(itemID, out var val) && !string.IsNullOrEmpty(val.Item1))
                 {
                     var nameCHS = val.Item1;
                     if (nameCHS != itemNameTranslated)
                     {
+                        if (dbHasValue)
+                        {
+                            itemdb.lang[2] = nameCHS;
+                            itemdb_json[itemID] = itemdb;
+                        }
                         name_json[itemID] = nameCHS;
                         changed_item_names.TryAdd(itemID, (itemNameTranslated, nameCHS));
                     }
@@ -135,6 +147,8 @@ namespace hqhelper_translator.Sub_Forms
             {
                 var itemID = itemKvp.Key;
                 var itemDescTranslated = itemKvp.Value;
+                var dbHasValue = itemdb_json.TryGetValue(itemID, out var itemdb);
+                if (dbHasValue && itemdb.desc[2].IsValid()) itemDescTranslated = itemdb.desc[2];
                 if (itemID < 0) continue; // ID为负的是注释，不管它
                 if (items.TryGetValue(itemID, out var val))
                 {
@@ -146,6 +160,11 @@ namespace hqhelper_translator.Sub_Forms
                         .Replace("\n", "<br>");
                     if (!string.IsNullOrEmpty(descCHS) && descCHS != itemDescTranslated)
                     {
+                        if (dbHasValue)
+                        {
+                            itemdb.desc[2] = descCHS;
+                            itemdb_json[itemID] = itemdb;
+                        }
                         desc_json[itemID] = descCHS;
                         changed_item_descs.TryAdd(itemID, (itemDescTranslated, descCHS));
                     }
@@ -162,6 +181,14 @@ namespace hqhelper_translator.Sub_Forms
                 LocalFile.Write(name_json_path, JsonConvert.SerializeObject(name_json, Formatting.Indented));
                 LocalFile.Write(desc_json_path, JsonConvert.SerializeObject(desc_json, Formatting.Indented));
                 msg += "暂译表已经更新，请到仓库中检查变更。\n";
+            }
+
+            if (CbOperateMode.SelectedIndex == 2) // 直接修改数据库表
+            {
+                var _s = JsonConvert.SerializeObject(itemdb_json);
+                _s = _s.Replace("]]},", "]]},\n"); // 保持原格式
+                LocalFile.Write(itemdb_json_path, _s);
+                msg += "数据表已经更新，请到仓库中检查变更。\n";
             }
 
             if (CbxOutputCompares.Checked)

@@ -43,7 +43,9 @@ namespace hqhelper_translator
             public bool hq;
             public int dye;
             public int act;
-            public int bon;
+            public bool tradable;
+            public bool collectable;
+            //public int bon;
             public bool reduce;
             public int elv;
             public int jobs;

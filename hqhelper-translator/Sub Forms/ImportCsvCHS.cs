@@ -185,6 +185,20 @@ namespace hqhelper_translator.Sub_Forms
 
             if (CbOperateMode.SelectedIndex == 2) // 直接修改数据库表
             {
+                foreach (var (id, iteminfo) in itemdb_json)
+                {
+                    if (items.TryGetValue(id, out var val))
+                    {
+                        if (!string.IsNullOrEmpty(val.Item1))
+                        {
+                            itemdb_json[id].lang[2] = val.Item1;
+                        }
+                        if (!string.IsNullOrEmpty(val.Item2))
+                        {
+                            itemdb_json[id].desc[2] = val.Item2;
+                        }
+                    }
+                }
                 var _s = JsonConvert.SerializeObject(itemdb_json);
                 _s = _s.Replace("]},", "]},\r\n"); // 保持原格式
                 _s = _s.Replace(@"""spm"":null,", "");

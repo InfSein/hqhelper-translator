@@ -112,6 +112,23 @@ namespace hqhelper_translator.Sub_Forms
             var desc_json = JsonConvert.DeserializeObject<Dictionary<int, string>>(desc_json_content);
             itemdb_json ??= []; name_json ??= []; desc_json ??= [];
 
+            foreach (var(item_id, item_info) in itemdb_json)
+            {
+                if (item_info.lang[2].IsInvalid()) continue;
+                var item_name = item_info.lang[2];
+                if (name_json.TryGetValue(item_id, out var name_translated))
+                    name_json[item_id] = item_name;
+                else
+                    name_json.Add(item_id, item_name);
+
+                if (item_info.desc[2].IsInvalid()) continue;
+                var item_desc = item_info.desc[2];
+                if (desc_json.TryGetValue(item_id, out var desc_translated))
+                    desc_json[item_id] = item_desc;
+                else
+                    desc_json.Add(item_id, item_desc);
+            }
+
             // Key: itemID, value: (oldVal, newVal)
             var changed_item_names = new Dictionary<int, (string, string)>();
             var changed_item_descs = new Dictionary<int, (string, string)>();
@@ -120,9 +137,12 @@ namespace hqhelper_translator.Sub_Forms
             foreach (var itemKvp in name_json)
             {
                 var itemID = itemKvp.Key;
+                if (itemID == 45978)
+                {
+                    var a = 1;
+                }
                 var itemNameTranslated = itemKvp.Value;
                 var dbHasValue = itemdb_json.TryGetValue(itemID, out var itemdb);
-                if (dbHasValue && itemdb.lang[2].IsValid()) itemNameTranslated = itemdb.lang[2];
                 if (itemID < 0) continue; // ID为负的是注释，不管它
                 if (items.TryGetValue(itemID, out var val) && !string.IsNullOrEmpty(val.Item1))
                 {
@@ -148,7 +168,6 @@ namespace hqhelper_translator.Sub_Forms
                 var itemID = itemKvp.Key;
                 var itemDescTranslated = itemKvp.Value;
                 var dbHasValue = itemdb_json.TryGetValue(itemID, out var itemdb);
-                if (dbHasValue && itemdb.desc[2].IsValid()) itemDescTranslated = itemdb.desc[2];
                 if (itemID < 0) continue; // ID为负的是注释，不管它
                 if (items.TryGetValue(itemID, out var val))
                 {
@@ -195,7 +214,12 @@ namespace hqhelper_translator.Sub_Forms
                         }
                         if (!string.IsNullOrEmpty(val.Item2))
                         {
-                            itemdb_json[id].desc[2] = val.Item2;
+                            var descCHS = val.Item2;
+                            descCHS = descCHS
+                                .Replace("\r\n", "<br>")
+                                .Replace("\r", "<br>")
+                                .Replace("\n", "<br>");
+                            itemdb_json[id].desc[2] = descCHS;
                         }
                     }
                 }
